@@ -92,9 +92,9 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     title: `${APP_NAME_JP} v${APP_VERSION}`,
     width: 500,
-    height: 750,
+    height: 800,
     minWidth: 500,
-    minHeight: 750,
+    minHeight: 800,
     icon: getIconPath() || undefined,
     webPreferences: {
       preload: preloadPath,
@@ -841,8 +841,8 @@ async function replaceRingtone(filePath: string) {
       const messageResult = await dialog.showMessageBox({
         type: 'warning',
         title: `${APP_NAME_JP} - 実行確認`,
-        message: 'LINEアプリを終了してから続行することをお勧めします',
-        detail: 'LINEアプリが実行中の場合、ファイルがロックされており置換が失敗する可能性があります。\n\nLINEアプリを終了してから「続行」をクリックしてください。',
+        message: 'LINEアプリは実行中のまま続行することをお勧めします',
+        detail: 'LINEアプリは起動直後の最初の着信時に、強制的にデフォルトの着信音に戻す処理が行われます。\n\nそのためLINEアプリを起動中に本アプリケーションを用いて着信音を置換してください。',
         buttons: ['続行', 'キャンセル'],
         defaultId: 0,
         cancelId: 1
