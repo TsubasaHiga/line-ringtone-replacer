@@ -1,6 +1,6 @@
 {
   "name": "line-ringtone-replacer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LINEアプリケーションの着信音ファイルを置換するアプリケーション",
   "author": "Tsubasa Higa",
   "main": "dist-electron/main/index.js",
