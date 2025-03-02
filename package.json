@@ -12,9 +12,9 @@
     "rebuild": "npm run clean && npm run build",
     "package": "npm run build && npm run package:mac-only && npm run package:win-only",
     "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win --ia32",
+    "package:win": "npm run build && electron-builder --win --x64",
     "package:mac-only": "electron-builder --mac",
-    "package:win-only": "electron-builder --win --ia32",
+    "package:win-only": "electron-builder --win --x64",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
