@@ -1,0 +1,13 @@
+@config "../../tailwind.config.js";
+@import "tailwindcss";
+
+/* カスタムスタイル */
+@layer components {
+  .status.success {
+    @apply text-green-500;
+  }
+
+  .status.error {
+    @apply text-red-500;
+  }
+} 
