@@ -10,7 +10,7 @@ const StatusMessage: React.FC<StatusMessageProps> = ({ message, type }) => {
 
   return (
     <div
-      className={`w-full mt-4 px-4 py-3 rounded-md flex items-center transition-all duration-300 break-all ${
+      className={`w-full mt-2 px-4 py-3 rounded-md flex items-center transition-all duration-300 break-all ${
         type === "success"
           ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
           : type === "error"

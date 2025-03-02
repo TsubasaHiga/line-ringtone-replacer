@@ -13,7 +13,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-800">
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center px-4 pt-16 max-w-md mx-auto w-full">
         <Header />
         <div className="flex flex-col gap-3 w-full">
           <DropArea

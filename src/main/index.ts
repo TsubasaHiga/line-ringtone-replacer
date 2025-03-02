@@ -92,15 +92,16 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     title: `${APP_NAME_JP} v${APP_VERSION}`,
     width: 500,
-    height: 800,
+    height: 780,
     minWidth: 500,
-    minHeight: 800,
+    minHeight: 700,
     icon: getIconPath() || undefined,
     webPreferences: {
       preload: preloadPath,
       nodeIntegration: false,
       contextIsolation: true,
     },
+    autoHideMenuBar: true,
   });
 
   // ウィンドウ読み込み完了後にタイトルを再設定

@@ -78,7 +78,7 @@ const DropArea: React.FC<DropAreaProps> = ({ onFileSelect, onFileDrop }) => {
         style={{ display: "none" }}
       />
       <div
-        className={`border-1 border-dashed rounded-app cursor-pointer transition-colors duration-300 p-3 h-60
+        className={`border-1 border-dashed rounded-app cursor-pointer transition-colors duration-300 p-3 h-58
         ${
           isDragging
             ? "border-line-green dark:border-line-green"
