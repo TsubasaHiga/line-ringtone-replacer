@@ -10,9 +10,11 @@
     "preview": "electron-vite preview",
     "clean": "rimraf dist dist-electron out",
     "rebuild": "npm run clean && npm run build",
-    "package": "npm run build && electron-builder",
+    "package": "npm run build && npm run package:mac-only && npm run package:win-only",
     "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win",
+    "package:win": "npm run build && electron-builder --win --ia32",
+    "package:mac-only": "electron-builder --mac",
+    "package:win-only": "electron-builder --win --ia32",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -46,12 +48,15 @@
       "category": "public.app-category.utilities",
       "target": "zip",
       "hardenedRuntime": true,
-      "icon": "public/icon.png"
+      "icon": "public/icon.png",
+      "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}"
     },
     "win": {
       "target": "portable",
-      "icon": "public/icon.png"
-    }
+      "icon": "public/icon.png",
+      "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}"
+    },
+    "artifactName": "${productName}-v${version}-${os}-${arch}.${ext}"
   },
   "dependencies": {
     "@deemlol/next-icons": "^0.1.9",
