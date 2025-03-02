@@ -22,4 +22,4 @@ export const AUDIO_FORMAT_DISPLAY_NAMES: Record<SupportedAudioExtension, string>
 export const SUPPORTED_AUDIO_EXTENSIONS_WITH_DOT = SUPPORTED_AUDIO_EXTENSIONS.map(ext => `.${ext}`);
 
 /** 対応音声ファイル拡張子をカンマ区切りで表示するための文字列 */
-export const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.map(ext => `.${ext}`).join('、'); 
+export const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.map(ext => `.${ext}`).join(', '); 

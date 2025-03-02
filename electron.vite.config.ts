@@ -29,9 +29,24 @@ export default defineConfig({
     },
   },
   renderer: {
-    root: 'src/renderer',
+    root: path.resolve(__dirname, 'src/renderer'),
+    publicDir: path.resolve(__dirname, 'public'),
     build: {
-      outDir: '../../dist',
+      outDir: path.resolve(__dirname, 'dist'),
+      emptyOutDir: true,
+      assetsDir: 'assets',
+      assetsInlineLimit: 0,
+      sourcemap: true,
+      rollupOptions: {
+        input: {
+          index: path.resolve(__dirname, 'src/renderer/index.html'),
+        },
+        output: {
+          entryFileNames: 'assets/[name].js',
+          chunkFileNames: 'assets/[name].js',
+          assetFileNames: 'assets/[name].[ext]'
+        }
+      },
     },
     resolve: {
       alias: {

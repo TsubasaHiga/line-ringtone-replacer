@@ -17,5 +17,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('handle-dropped-file', { path: filePath }),
     
   // バックアップファイルの存在確認
-  checkBackupExists: () => ipcRenderer.invoke('check-backup-exists')
+  checkBackupExists: () => ipcRenderer.invoke('check-backup-exists'),
+  
+  // アプリケーション情報の取得
+  getAppInfo: () => ipcRenderer.invoke('get-app-info')
 }); 

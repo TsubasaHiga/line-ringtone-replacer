@@ -2,24 +2,40 @@
   "name": "line-ringtone-replacer",
   "version": "1.0.0",
   "description": "LINEアプリケーションの着信音ファイルを置換するアプリケーション",
+  "author": "Tsubasa Higa",
   "main": "dist-electron/main/index.js",
   "scripts": {
     "dev": "electron-vite dev --watch",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "clean": "rimraf dist dist-electron",
+    "clean": "rimraf dist dist-electron out",
     "rebuild": "npm run clean && npm run build",
     "package": "npm run build && electron-builder",
     "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win"
+    "package:win": "npm run build && electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.yourname.line-ringtone-replacer",
+    "appId": "work.cofus.line-ringtone-replacer",
     "productName": "LINE Ringtone Replacer",
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "!**/node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/**/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!**/node_modules/**/{.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/node_modules/**/{.DS_Store,.directory,.Spotlight-V100,__MACOSX}",
+      "!**/*.{map,d.ts}"
     ],
+    "asar": false,
+    "extraMetadata": {
+      "main": "dist-electron/main/index.js"
+    },
+    "directories": {
+      "output": "out",
+      "buildResources": "resources"
+    },
     "extraResources": [
       {
         "from": "node_modules/ffmpeg-static/",
@@ -27,14 +43,18 @@
       }
     ],
     "mac": {
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "target": "zip",
+      "hardenedRuntime": true,
+      "icon": "public/icon.png"
     },
     "win": {
-      "target": "nsis"
+      "target": "portable",
+      "icon": "public/icon.png"
     }
   },
   "dependencies": {
-    "electron": "^34.3.0",
+    "@deemlol/next-icons": "^0.1.9",
     "ffmpeg-static": "latest",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -48,6 +68,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^34.3.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.0.0",
     "postcss": "^8.5.3",

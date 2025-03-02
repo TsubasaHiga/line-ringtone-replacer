@@ -6,10 +6,20 @@ import { convertToWav, isAudioFile } from '../utils/audioConverter';
 import { SUPPORTED_AUDIO_EXTENSIONS } from '../contracts/AudioFormats';
 import * as sudoPrompt from 'sudo-prompt';
 
+// アプリケーションのバージョン情報を取得
+const APP_VERSION = app.getVersion();
+console.log('アプリケーションバージョン:', APP_VERSION);
+
+// DPIスケーリングの問題を解決するために高DPI動作を設定
+if (process.platform === 'win32') {
+  app.commandLine.appendSwitch('high-dpi-support', '1');
+  app.commandLine.appendSwitch('force-device-scale-factor', '1');
+}
+
 // パスの設定
 const DIST_PATH = path.join(__dirname, '../..');
 const PUBLIC_PATH = app.isPackaged 
-  ? DIST_PATH 
+  ? path.join(DIST_PATH) 
   : path.join(DIST_PATH, '../public');
 
 // ウィンドウの参照
@@ -24,29 +34,93 @@ const ringtoneFileName = 'VoipRing.wav';
 // アプリ名（sudo-promptのメッセージで使用 - 英数字のみに制限）
 const APP_NAME = 'LINE Ringtone Replacer';
 // 日本語表示用アプリ名
-const APP_NAME_JP = 'LINE着信音置換ツール';
+const APP_NAME_JP = 'LINE着信音置換くん';
 
 // バックアップ存在確認のキャッシュ
 let backupExistsCache: { exists: boolean; timestamp: number } | null = null;
 // キャッシュの有効期間（ミリ秒）- 30秒
 const CACHE_TTL = 30 * 1000;
 
+// アイコンパスを取得する関数
+function getIconPath() {
+  const iconFilename = 'icon.png';
+  const possiblePaths = [
+    path.join(PUBLIC_PATH, iconFilename),
+    path.join(app.getAppPath(), 'public', iconFilename),
+    path.join(process.resourcesPath, 'public', iconFilename),
+    path.join(__dirname, '../../public', iconFilename),
+    path.join(process.cwd(), 'public', iconFilename)
+  ];
+
+  for (const iconPath of possiblePaths) {
+    if (fs.existsSync(iconPath)) {
+      console.log('アイコンファイルを見つけました:', iconPath);
+      return iconPath;
+    }
+  }
+
+  console.log('アイコンファイルが見つかりません。デフォルトを使用します。');
+  return null;
+}
+
 const createWindow = () => {
+  // プリロードスクリプトの正しいパスを見つける
+  let preloadPath = path.join(__dirname, '../preload/index.js');
+  console.log('デフォルトのプリロードパス:', preloadPath);
+  
+  // ファイルが存在するか確認
+  if (!fs.existsSync(preloadPath)) {
+    console.log('デフォルトのプリロードパスが見つかりません、代替を探します');
+    
+    // 代替パスを試す
+    const altPaths = [
+      path.join(app.getAppPath(), 'dist-electron/preload/index.js'),
+      path.join(DIST_PATH, 'preload/index.js'),
+      path.join(__dirname, '../../dist-electron/preload/index.js')
+    ];
+    
+    for (const altPath of altPaths) {
+      console.log('代替プリロードパスを確認:', altPath);
+      if (fs.existsSync(altPath)) {
+        preloadPath = altPath;
+        console.log('有効なプリロードパスを見つけました:', preloadPath);
+        break;
+      }
+    }
+  }
+
   mainWindow = new BrowserWindow({
-    width: 550,
+    title: `${APP_NAME_JP} v${APP_VERSION}`,
+    width: 500,
     height: 750,
-    minWidth: 550,
+    minWidth: 500,
     minHeight: 750,
+    icon: getIconPath() || undefined,
     webPreferences: {
-      nodeIntegration: true,
+      preload: preloadPath,
+      nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, '../preload/index.js'),
     },
-    backgroundColor: '#ffffff',
-    // アイコン設定
-    icon: path.join(PUBLIC_PATH, 'icon.png'),
   });
 
+  // ウィンドウ読み込み完了後にタイトルを再設定
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (mainWindow) {
+      console.log('ウィンドウ読み込み完了、タイトルを再設定します');
+      mainWindow.setTitle(`${APP_NAME_JP} v${APP_VERSION}`);
+      console.log('実際のタイトル (再設定後):', mainWindow.getTitle());
+    }
+  });
+
+  // デバッグ情報を表示
+  console.log('アプリのパス情報:');
+  console.log('app.getAppPath():', app.getAppPath());
+  console.log('__dirname:', __dirname);
+  console.log('process.cwd():', process.cwd());
+  console.log('app.getPath(exe):', app.getPath('exe'));
+  console.log('app.getPath(userData):', app.getPath('userData'));
+  console.log('app.getPath(appData):', app.getPath('appData'));
+  
   // 開発環境ではローカルサーバーから読み込む
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
@@ -54,8 +128,42 @@ const createWindow = () => {
       mode: 'detach',
     });
   } else {
-    // 本番環境ではビルド済みのHTMLを読み込む
-    mainWindow.loadFile(path.join(DIST_PATH, 'index.html'));
+    // 本番環境では、index.htmlファイルを探して読み込む
+    // パッケージング後のindex.htmlの検索順序を定義
+    const htmlPaths = [
+      // 1. アプリケーションのリソースディレクトリ内のdist/index.html
+      path.join(app.getAppPath(), 'dist', 'index.html'),
+      
+      // 2. Resourcesディレクトリ内のdist/index.html
+      path.join(process.resourcesPath, 'app', 'dist', 'index.html'),
+      
+      // 3. 実行ファイルの相対パス
+      path.join(app.getPath('exe'), '..', '..', 'Resources', 'app', 'dist', 'index.html'),
+      
+      // 4. dist-electronの親ディレクトリ内のdist/index.html
+      path.join(__dirname, '../../dist', 'index.html'),
+      
+      // 5. カレントディレクトリ内のdist/index.html
+      path.join(process.cwd(), 'dist', 'index.html'),
+    ];
+    
+    // 各パスを試行してindex.htmlを探す
+    let indexHtmlPath = null;
+    for (const htmlPath of htmlPaths) {
+      console.log(`index.htmlの検索: ${htmlPath} - ${fs.existsSync(htmlPath) ? '存在します' : '存在しません'}`);
+      if (fs.existsSync(htmlPath)) {
+        indexHtmlPath = htmlPath;
+        break;
+      }
+    }
+    
+    if (indexHtmlPath) {
+      console.log('index.htmlを読み込みます:', indexHtmlPath);
+      mainWindow.loadFile(indexHtmlPath);
+    } else {
+      console.error('index.htmlが見つかりませんでした。');
+      mainWindow.loadURL(`data:text/html,<html><body><h1>エラー</h1><p>index.htmlファイルが見つかりませんでした。</p></body></html>`);
+    }
   }
 
   mainWindow.on('closed', () => {
@@ -64,6 +172,80 @@ const createWindow = () => {
 };
 
 app.whenReady().then(() => {
+  // preloadスクリプトへのパスを動的に検索
+  const getPreloadPath = () => {
+    const possiblePreloadPaths = [
+      path.join(__dirname, '../preload/index.js'),
+      path.join(__dirname, '../../preload/index.js'),
+      path.join(app.getAppPath(), 'dist-electron/preload/index.js'),
+      path.join(process.resourcesPath, 'dist-electron/preload/index.js'),
+      path.join(process.resourcesPath, 'app/dist-electron/preload/index.js'),
+      path.join(app.getPath('exe'), '..', '..', 'Resources', 'app', 'dist-electron', 'preload', 'index.js'),
+      path.join(app.getPath('exe'), '..', '..', 'Resources', 'dist-electron', 'preload', 'index.js')
+    ];
+    
+    console.log('プリロードスクリプトの検索:');
+    for (const p of possiblePreloadPaths) {
+      const exists = fs.existsSync(p);
+      console.log(`- ${p}: ${exists ? '存在します' : '存在しません'}`);
+      if (exists) {
+        return p;
+      }
+    }
+    
+    console.error('プリロードスクリプトが見つかりませんでした。デフォルトパスを使用します。');
+    return path.join(__dirname, '../preload/index.js');
+  };
+  
+  const preloadPath = getPreloadPath();
+  console.log('使用するプリロードスクリプトのパス:', preloadPath);
+  
+  // アプリケーションディレクトリ構造をデバッグログに出力
+  console.log('============ ディレクトリ構造デバッグ ============');
+  
+  // 重要なディレクトリパスのリスト
+  const dirsToCheck = [
+    { name: 'app.getAppPath()', path: app.getAppPath() },
+    { name: '__dirname', path: __dirname },
+    { name: 'process.resourcesPath', path: process.resourcesPath },
+    { name: 'app.getPath(exe) 親ディレクトリ', path: path.dirname(app.getPath('exe')) }
+  ];
+  
+  // 各ディレクトリの内容を確認
+  dirsToCheck.forEach(dir => {
+    console.log(`\n【${dir.name}】: ${dir.path}`);
+    try {
+      if (fs.existsSync(dir.path)) {
+        const files = fs.readdirSync(dir.path);
+        console.log('内容:', files.join(', '));
+        
+        // distディレクトリが存在するか確認
+        const distPath = path.join(dir.path, 'dist');
+        if (fs.existsSync(distPath)) {
+          console.log('distディレクトリが存在します');
+          try {
+            const distFiles = fs.readdirSync(distPath);
+            console.log('distの内容:', distFiles.join(', '));
+            
+            // index.htmlが存在するか確認
+            const indexPath = path.join(distPath, 'index.html');
+            console.log(`index.html存在チェック: ${fs.existsSync(indexPath) ? '存在します' : '存在しません'}`);
+          } catch (err) {
+            console.error('distディレクトリの読み取りエラー:', err);
+          }
+        } else {
+          console.log('distディレクトリが存在しません');
+        }
+      } else {
+        console.log('ディレクトリが存在しません');
+      }
+    } catch (err) {
+      console.error('ディレクトリ確認エラー:', err);
+    }
+  });
+  
+  console.log('============ ディレクトリ構造デバッグ終了 ============');
+  
   createWindow();
 
   app.on('activate', () => {
@@ -144,9 +326,9 @@ ipcMain.handle('restore-ringtone', async () => {
       // LINEアプリが実行中の場合、ファイルがロックされている可能性があるため警告メッセージを表示
       const messageResult = await dialog.showMessageBox({
         type: 'warning',
-        title: `${APP_NAME_JP} - 実行確認`,
-        message: 'LINEアプリを終了してから続行することをお勧めします',
-        detail: 'LINEアプリが実行中の場合、ファイルがロックされており復元が失敗する可能性があります。\n\nLINEアプリを終了してから「続行」をクリックしてください。',
+        title: `実行確認`,
+        message: 'LINEアプリは実行中のまま続行することをお勧めします',
+        detail: 'LINEアプリは起動直後の最初の着信時に、強制的にデフォルトの着信音に戻す処理が行われます。\n\nそのためLINEアプリを起動中に本アプリケーションを用いて着信音を置換してください。',
         buttons: ['続行', 'キャンセル'],
         defaultId: 0,
         cancelId: 1
@@ -197,7 +379,7 @@ ipcMain.handle('restore-ringtone', async () => {
           
           if (error) {
             console.error('Error restoring ringtone with sudo:', error);
-            let errorMessage = `${APP_NAME_JP}：管理者権限での復元に失敗しました`;
+            let errorMessage = `管理者権限での復元に失敗しました`;
             if (error.message) {
               errorMessage += `: ${error.message}`;
             }
@@ -231,7 +413,7 @@ ipcMain.handle('restore-ringtone', async () => {
             updateBackupExistsCache(false);
             resolve({
               success: true,
-              message: 'デフォルトの着信音に戻しました。バックアップファイルも削除しました。\n\nLINEアプリを再起動すると変更が適用されます。'
+              message: 'デフォルトの着信音に戻しました。バックアップファイルも削除しました。'
             });
           }
         });
@@ -259,7 +441,7 @@ ipcMain.handle('restore-ringtone', async () => {
           
           if (error) {
             console.error('Error restoring ringtone with sudo:', error);
-            resolve({ success: false, message: `${APP_NAME_JP}：管理者権限での復元に失敗しました: ${error.message || '不明なエラー'}` });
+            resolve({ success: false, message: `管理者権限での復元に失敗しました: ${error.message || '不明なエラー'}` });
           } else {
             // 復元成功後にキャッシュを更新
             updateBackupExistsCache(false);
@@ -748,7 +930,7 @@ async function replaceRingtone(filePath: string) {
             console.error('Error replacing ringtone with sudo:', error);
             
             // エラーメッセージをより詳細に
-            let errorMessage = `${APP_NAME_JP}：管理者権限での着信音置換に失敗しました`;
+            let errorMessage = `管理者権限での着信音置換に失敗しました`;
             if (error.message) {
               errorMessage += `: ${error.message}`;
             }
@@ -793,7 +975,7 @@ async function replaceRingtone(filePath: string) {
             updateBackupExistsCache(true);
             resolve({
               success: true,
-              message: '着信音の置換が完了しました！\n\nLINEアプリを再起動すると新しい着信音が適用されます。'
+              message: '着信音の置換が完了しました！\n\nLINEアプリの再起動は不要です。'
             });
           }
         });
@@ -843,7 +1025,7 @@ async function replaceRingtone(filePath: string) {
             console.error('Error replacing ringtone with sudo:', error);
             
             // エラーメッセージをより詳細に
-            let errorMessage = `${APP_NAME_JP}：管理者権限での着信音置換に失敗しました`;
+            let errorMessage = `管理者権限での着信音置換に失敗しました`;
             if (error.message) {
               errorMessage += `: ${error.message}`;
             }
@@ -914,4 +1096,13 @@ function invalidateBackupExistsCache(): void {
 // 着信音関連操作の後にキャッシュを無効化する（置換または復元操作後）
 function invalidateCacheAfterOperation(): void {
   invalidateBackupExistsCache();
-} 
+}
+
+// アプリケーションのバージョン情報を取得するハンドラ
+ipcMain.handle('get-app-info', () => {
+  return {
+    version: APP_VERSION,
+    name: APP_NAME_JP,
+    platform: process.platform
+  };
+}); 

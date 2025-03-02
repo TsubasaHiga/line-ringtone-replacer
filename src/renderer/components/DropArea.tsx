@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { SUPPORTED_AUDIO_EXTENSIONS_WITH_DOT } from '../../contracts/AudioFormats';
+import React, { useRef, useState } from "react";
+import { SUPPORTED_AUDIO_EXTENSIONS_WITH_DOT } from "../../contracts/AudioFormats";
+import { Upload } from "@deemlol/next-icons";
+import SupportedFormats from "./SupportedFormats";
 
 interface DropAreaProps {
   onFileSelect: (file: File) => void;
@@ -25,7 +27,10 @@ const DropArea: React.FC<DropAreaProps> = ({ onFileSelect, onFileDrop }) => {
   };
 
   // ドラッグイベントのハンドラー
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>, isDragging: boolean) => {
+  const handleDrag = (
+    e: React.DragEvent<HTMLDivElement>,
+    isDragging: boolean,
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(isDragging);
@@ -36,15 +41,15 @@ const DropArea: React.FC<DropAreaProps> = ({ onFileSelect, onFileDrop }) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
+
     // ドロップされたファイルを取得
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      
+
       // 音声ファイルかどうかチェック
-      if (file.type.startsWith('audio/')) {
+      if (file.type.startsWith("audio/")) {
         setIsProcessing(true);
-        
+
         try {
           // ドロップハンドラーが提供されている場合はそれを使用、なければ通常の選択処理
           if (onFileDrop) {
@@ -53,12 +58,12 @@ const DropArea: React.FC<DropAreaProps> = ({ onFileSelect, onFileDrop }) => {
             onFileSelect(file);
           }
         } catch (error) {
-          console.error('ファイル処理エラー:', error);
+          console.error("ファイル処理エラー:", error);
         } finally {
           setIsProcessing(false);
         }
       } else {
-        alert('音声ファイルをドロップしてください');
+        alert("音声ファイルをドロップしてください");
       }
     }
   };
@@ -69,44 +74,52 @@ const DropArea: React.FC<DropAreaProps> = ({ onFileSelect, onFileDrop }) => {
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept={SUPPORTED_AUDIO_EXTENSIONS_WITH_DOT.join(',')}
-        style={{ display: 'none' }}
+        accept={SUPPORTED_AUDIO_EXTENSIONS_WITH_DOT.join(",")}
+        style={{ display: "none" }}
       />
-      <div 
-        className={`w-full h-48 border-2 border-dashed rounded-app cursor-pointer transition-colors duration-300 flex items-center justify-center ${
-          isDragging 
-            ? 'border-line-green dark:border-line-green bg-green-50 dark:bg-opacity-10' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-line-green dark:hover:border-line-green bg-gray-50 dark:bg-gray-700'
-        }`}
-        onClick={openFileDialog}
-        onDragEnter={(e) => handleDrag(e, true)}
-        onDragOver={(e) => handleDrag(e, true)}
-        onDragLeave={(e) => handleDrag(e, false)}
-        onDrop={handleDrop}
-        data-testid="drop-area"
+      <div
+        className={`border-1 border-dashed rounded-app cursor-pointer transition-colors duration-300 p-3 h-60
+        ${
+          isDragging
+            ? "border-line-green dark:border-line-green"
+            : "border-gray-300 dark:border-gray-600 hover:border-line-green dark:hover:border-line-green"
+        }
+        `}
       >
-        <div className="w-full h-full flex flex-col items-center justify-center p-6 select-none">
-          <svg 
-            className={`w-12 h-12 mb-4 text-line-green ${isProcessing ? 'animate-pulse' : ''}`}
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M9 16H15V10H19L12 3L5 10H9V16ZM12 5.83L14.17 8H13V14H11V8H9.83L12 5.83ZM5 18H19V20H5V18Z" fill="currentColor"/>
-          </svg>
-          <p className="text-gray-600 dark:text-gray-300 text-center">
-            {isProcessing 
-              ? 'ファイルを処理中...' 
-              : isDragging 
-                ? 'ファイルをドロップしてください' 
-                : (<>クリックまたはドラッグ＆ドロップ<br/>で音声ファイルを選択</>)}
-          </p>
+        <div
+          className={`w-full h-full flex flex-col items-center justify-center gap-4 select-none rounded-md
+            ${
+            isDragging
+              ? "bg-green-50 dark:bg-opacity-10"
+              : "hover:border-line-green dark:hover:border-line-green bg-gray-50 dark:bg-gray-700"
+          }`}
+          onClick={openFileDialog}
+          onDragEnter={(e) => handleDrag(e, true)}
+          onDragOver={(e) => handleDrag(e, true)}
+          onDragLeave={(e) => handleDrag(e, false)}
+          onDrop={handleDrop}
+          data-testid="drop-area"
+        >
+          <div className="flex flex-col items-center justify-center">
+            <Upload
+              size={24}
+              className={`w-12 h-12 mb-4 text-line-green ${
+                isProcessing ? "animate-pulse" : ""
+              }`}
+            />
+            <p className="text-gray-600 dark:text-gray-300 text-center">
+              {isProcessing ? "ファイルを処理中..." : (
+                <>
+                  クリックまたはドラッグ＆ドロップ<br />で音声ファイルを選択
+                </>
+              )}
+            </p>
+          </div>
+          <SupportedFormats />
         </div>
       </div>
     </>
   );
 };
 
-export default DropArea; 
+export default DropArea;
