@@ -5,11 +5,9 @@ Electronを使用してデスクトップアプリケーションとして実装
 
 macOS版もありますが、現在はWindows版のみの展開です。
 
-<div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-  <div style="border-radius: 10px; overflow: hidden; max-width: 400px; margin: 0 auto;">
-    <img src="./docs/images/image-app-shot-1.png">
-  </div>
-</div>
+<p align="center">
+  <img src="./docs/images/image-app-shot-1.png" width="40%">
+</p>
 
 ## 動作確認環境
 
@@ -30,7 +28,7 @@ LINEアプリケーションを起動した状態にしておきます。
 
 途中操作権限の許可が求められるので忘れず許可します。
 
-<video src="./docs/videos/video-1.mp4" controls></video>
+<video controls src="https://github.com/user-attachments/assets/0325b172-7ea8-4cb6-9822-8ff5fb410dae" muted="false"></video>
 
 基本的な使用方法は以上です。
 
@@ -48,7 +46,7 @@ LINEアプリケーションを起動した状態にしておきます。
 
 **※ 音声が流れますので音量にご注意ください。**
 
-<video src="./docs/videos/video-2.mp4" controls></video>
+<video controls src="https://github.com/user-attachments/assets/2f0e3c44-431e-43ed-84a7-90a57c66814a" muted="false"></video>
 
 ## 仕様について
 
