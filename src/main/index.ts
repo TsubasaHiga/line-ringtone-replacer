@@ -10,12 +10,6 @@ import * as sudoPrompt from 'sudo-prompt';
 const APP_VERSION = app.getVersion();
 console.log('アプリケーションバージョン:', APP_VERSION);
 
-// DPIスケーリングの問題を解決するために高DPI動作を設定
-if (process.platform === 'win32') {
-  app.commandLine.appendSwitch('high-dpi-support', '1');
-  app.commandLine.appendSwitch('force-device-scale-factor', '1');
-}
-
 // パスの設定
 const DIST_PATH = path.join(__dirname, '../..');
 const PUBLIC_PATH = app.isPackaged 
