@@ -11,6 +11,13 @@
 - Windows 11 (10.0.22631.4602): LINE `ver 9.6.1.3529`
 - macOS 14.4.1 (23E224): LINE `ver 9.6.1.3529` ※macOS版は検証段階で未リリースです
 
+## ダウンロード
+
+以下より最新バージョンのインストーラーをダウンロード可能です。
+お使いの環境に適したものをダウンロードしてください。
+
+<https://github.com/TsubasaHiga/line-ringtone-replacer/releases>
+
 ## 使用方法
 
 ### 1. LINEアプリケーションを起動する
