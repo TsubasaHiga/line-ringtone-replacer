@@ -4,6 +4,10 @@ import * as fs from "fs";
 import * as os from "os";
 import { convertToWav, isAudioFile } from "../utils/audioConverter";
 import { SUPPORTED_AUDIO_EXTENSIONS } from "../contracts/AudioFormats";
+import {
+  RINGTONE_REPLACE_TIMEOUT_MS,
+  BACKUP_CHECK_CACHE_TTL_MS,
+} from "../contracts/Timeouts";
 import * as sudoPrompt from "sudo-prompt";
 
 // アプリケーションのバージョン情報を取得
@@ -32,8 +36,8 @@ const APP_NAME_JP = "LINE着信音置換くん";
 
 // バックアップ存在確認のキャッシュ
 let backupExistsCache: { exists: boolean; timestamp: number } | null = null;
-// キャッシュの有効期間（ミリ秒）- 30秒
-const CACHE_TTL = 30 * 1000;
+// キャッシュの有効期間（ミリ秒）
+const CACHE_TTL = BACKUP_CHECK_CACHE_TTL_MS;
 
 // アイコンパスを取得する関数
 function getIconPath() {
@@ -1018,6 +1022,15 @@ async function replaceRingtone(filePath: string) {
     if (process.platform === "win32") {
       // 管理者権限で着信音ファイルを置換（PowerShell経由で実行）
       return new Promise((resolve) => {
+        // タイムアウト用のタイマーを設定
+        const timeoutId = setTimeout(() => {
+          console.error("タイムアウト: 着信音置換処理が完了しませんでした");
+          resolve({
+            success: false,
+            message: "処理がタイムアウトしました。もう一度お試しください。",
+          });
+        }, RINGTONE_REPLACE_TIMEOUT_MS);
+
         // PowerShellコマンドを構築
         let psCommand = [];
 
@@ -1053,6 +1066,9 @@ async function replaceRingtone(filePath: string) {
           command,
           { name: APP_NAME },
           (error, stdout, stderr) => {
+            // タイムアウトタイマーをクリア
+            clearTimeout(timeoutId);
+
             console.log("sudo-prompt実行完了");
 
             if (stdout) {
@@ -1148,6 +1164,15 @@ async function replaceRingtone(filePath: string) {
 
       // 管理者権限で着信音ファイルを置換
       return new Promise((resolve) => {
+        // タイムアウト用のタイマーを設定
+        const timeoutId = setTimeout(() => {
+          console.error("タイムアウト: 着信音置換処理が完了しませんでした");
+          resolve({
+            success: false,
+            message: "処理がタイムアウトしました。もう一度お試しください。",
+          });
+        }, RINGTONE_REPLACE_TIMEOUT_MS);
+
         // macOSの場合
         const command = `${backupCommand}cp "${wavFilePath}" "${ringtonePath}"`;
 
@@ -1159,6 +1184,9 @@ async function replaceRingtone(filePath: string) {
           command,
           { name: APP_NAME },
           (error, stdout, stderr) => {
+            // タイムアウトタイマーをクリア
+            clearTimeout(timeoutId);
+
             console.log("sudo-prompt実行完了");
 
             if (stdout) {
